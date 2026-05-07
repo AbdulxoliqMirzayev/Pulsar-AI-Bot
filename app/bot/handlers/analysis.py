@@ -24,7 +24,7 @@ router = Router(name="analysis")
 
 
 @router.callback_query(F.data == "menu:technical")
-async def technical(callback: CallbackQuery, settings: Settings, language: str, session: AsyncSession, db_user: User) -> None:
+async def technical(callback: CallbackQuery, settings: Settings, language: str | None = None, session: AsyncSession | None = None, db_user: User | None = None) -> None:
     await callback.message.edit_text(pt(language, "analysis.loading"))
     service = MarketDataService(settings)
     try:
@@ -34,28 +34,29 @@ async def technical(callback: CallbackQuery, settings: Settings, language: str, 
             await callback.message.answer(pt(language, "analysis.no_data"), reply_markup=main_menu(language))
             return
         report = TechnicalAnalyzer().analyze(symbol, candles, "15m")
-        await MarketSnapshotRepository(session).create(
-            {
-                "symbol": report.symbol,
-                "provider": "mexc",
-                "market_type": "spot",
-                "price": report.price,
-                "timeframe": "15m",
-                "candles_json": [
-                    {
-                        "time": candle.time.isoformat() if candle.time else None,
-                        "open": candle.open,
-                        "high": candle.high,
-                        "low": candle.low,
-                        "close": candle.close,
-                        "volume": candle.volume,
-                    }
-                    for candle in candles[-50:]
-                ],
-                "indicators_json": report.indicators,
-                "technical_summary": report.summary,
-            }
-        )
+        if session is not None:
+            await MarketSnapshotRepository(session).create(
+                {
+                    "symbol": report.symbol,
+                    "provider": "mexc",
+                    "market_type": "spot",
+                    "price": report.price,
+                    "timeframe": "15m",
+                    "candles_json": [
+                        {
+                            "time": candle.time.isoformat() if candle.time else None,
+                            "open": candle.open,
+                            "high": candle.high,
+                            "low": candle.low,
+                            "close": candle.close,
+                            "volume": candle.volume,
+                        }
+                        for candle in candles[-50:]
+                    ],
+                    "indicators_json": report.indicators,
+                    "technical_summary": report.summary,
+                }
+            )
         await callback.message.answer(_format_technical(report.to_dict(), language), reply_markup=main_menu(language))
     except Exception as exc:
         await callback.message.answer(f"{pt(language, 'errors.generic')}\n<code>{h(exc)}</code>", reply_markup=main_menu(language))
@@ -65,13 +66,14 @@ async def technical(callback: CallbackQuery, settings: Settings, language: str, 
 
 
 @router.callback_query(F.data == "menu:news")
-async def news(callback: CallbackQuery, settings: Settings, language: str, session: AsyncSession) -> None:
+async def news(callback: CallbackQuery, settings: Settings, language: str | None = None, session: AsyncSession | None = None) -> None:
     await callback.message.edit_text(pt(language, "analysis.loading"))
     analyzer = FundamentalAnalyzer(settings)
     try:
         report = await analyzer.analyze_now(language)
-        await NewsRepository(session).save_many(report.key_news)
-        await CalendarRepository(session).save_many(report.key_events)
+        if session is not None:
+            await NewsRepository(session).save_many(report.key_news)
+            await CalendarRepository(session).save_many(report.key_events)
         await callback.message.answer(_format_fundamental(report.to_dict(), language), reply_markup=main_menu(language))
     except Exception as exc:
         await callback.message.answer(f"{pt(language, 'errors.generic')}\n<code>{h(exc)}</code>", reply_markup=main_menu(language))
@@ -81,7 +83,7 @@ async def news(callback: CallbackQuery, settings: Settings, language: str, sessi
 
 
 @router.callback_query(F.data == "menu:calendar")
-async def calendar(callback: CallbackQuery, settings: Settings, language: str) -> None:
+async def calendar(callback: CallbackQuery, settings: Settings, language: str | None = None) -> None:
     analyzer = FundamentalAnalyzer(settings)
     try:
         events = await analyzer.calendar.upcoming_usd_events()
@@ -98,13 +100,13 @@ async def calendar(callback: CallbackQuery, settings: Settings, language: str) -
 
 
 @router.callback_query(F.data == "menu:vision")
-async def vision_prompt(callback: CallbackQuery, language: str) -> None:
+async def vision_prompt(callback: CallbackQuery, language: str | None = None) -> None:
     await callback.message.answer(pt(language, "analysis.vision_prompt"))
     await callback.answer()
 
 
 @router.message(F.photo)
-async def vision_photo(message: Message, settings: Settings, language: str) -> None:
+async def vision_photo(message: Message, settings: Settings, language: str | None = None) -> None:
     photo = message.photo[-1]
     image = await download_file_bytes(message.bot, photo.file_id)
     analyzer = ChartVisionAnalyzer(settings)
@@ -113,7 +115,11 @@ async def vision_photo(message: Message, settings: Settings, language: str) -> N
 
 
 @router.callback_query(F.data == "menu:journal")
-async def journal(callback: CallbackQuery, language: str, session: AsyncSession, db_user: User) -> None:
+async def journal(callback: CallbackQuery, language: str | None = None, session: AsyncSession | None = None, db_user: User | None = None) -> None:
+    if session is None or db_user is None:
+        await callback.message.answer(pt(language, "errors.generic"), reply_markup=main_menu(language))
+        await callback.answer()
+        return
     repo = TradingJournalRepository(session)
     stats = await repo.stats(db_user.id)
     history = await repo.history(db_user.id, 5)
@@ -130,7 +136,7 @@ async def journal(callback: CallbackQuery, language: str, session: AsyncSession,
 
 
 @router.callback_query(F.data == "menu:algo")
-async def algo(callback: CallbackQuery, language: str) -> None:
+async def algo(callback: CallbackQuery, language: str | None = None) -> None:
     await callback.message.answer(f"<b>{h(t(language, 'algo.title'))}</b>\n{h(t(language, 'algo.text'))}", reply_markup=main_menu(language))
     await callback.answer()
 

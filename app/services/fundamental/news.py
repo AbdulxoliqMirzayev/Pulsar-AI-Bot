@@ -15,7 +15,41 @@ DEFAULT_RSS_FEEDS = {
     "FXStreet": "https://www.fxstreet.com/rss/news",
     "CoinDesk": "https://www.coindesk.com/arc/outboundfeeds/rss/",
     "Cointelegraph": "https://cointelegraph.com/rss",
+    "Investing": "https://www.investing.com/rss/news_25.rss",
+    "DailyFX": "https://www.dailyfx.com/feeds/all",
 }
+
+MARKET_KEYWORDS = (
+    "fed",
+    "fomc",
+    "powell",
+    "dollar",
+    "usd",
+    "dxy",
+    "treasury",
+    "yield",
+    "cpi",
+    "inflation",
+    "jobs",
+    "payroll",
+    "nfp",
+    "pmi",
+    "gdp",
+    "gold",
+    "xau",
+    "safe haven",
+    "forex",
+    "fx",
+    "eurusd",
+    "gbpusd",
+    "usdjpy",
+    "bitcoin",
+    "btc",
+    "crypto",
+    "etf",
+    "risk-off",
+    "risk-on",
+)
 
 
 class NewsClient:
@@ -46,10 +80,13 @@ class NewsClient:
         output: list[dict] = []
         for entry in parsed.entries[: self.settings.news_fetch_limit]:
             published = self._parse_date(getattr(entry, "published", None) or getattr(entry, "updated", None))
-            if published and published < datetime.now(UTC) - timedelta(hours=max(self.settings.news_lookback_hours, 1) * 6):
+            if published and published < datetime.now(UTC) - timedelta(hours=max(self.settings.news_lookback_hours, 24)):
                 continue
             title = getattr(entry, "title", "")
             summary = getattr(entry, "summary", "")
+            text = f"{title} {summary}"
+            if source == "Investing" and not self._is_market_relevant(text):
+                continue
             output.append(
                 {
                     "source": source,
@@ -58,7 +95,7 @@ class NewsClient:
                     "description": summary,
                     "url": getattr(entry, "link", None),
                     "published_at": published,
-                    "related_instruments": self._related(title + " " + summary),
+                    "related_instruments": self._related(text),
                 }
             )
         return output
@@ -154,6 +191,10 @@ class NewsClient:
             instruments.append("DXY")
             instruments.append("XAUUSD")
         return sorted(set(instruments or ["DXY"]))
+
+    def _is_market_relevant(self, text: str) -> bool:
+        lower = text.lower()
+        return any(keyword in lower for keyword in MARKET_KEYWORDS)
 
     def _parse_date(self, raw: str | None) -> datetime | None:
         if not raw:

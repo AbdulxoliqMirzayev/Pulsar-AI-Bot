@@ -23,7 +23,12 @@ class DbUserMiddleware(BaseMiddleware):
     ) -> Any:
         async with self.session_factory() as session:
             data["session"] = session
-            telegram_user = getattr(event, "from_user", None)
+            data["settings"] = self.settings
+            telegram_user = getattr(event, "from_user", None) or data.get("event_from_user")
+            if telegram_user is None and hasattr(event, "message") and getattr(event, "message"):
+                telegram_user = getattr(event.message, "from_user", None)
+            if telegram_user is None and hasattr(event, "callback_query") and getattr(event, "callback_query"):
+                telegram_user = getattr(event.callback_query, "from_user", None)
             if telegram_user:
                 repo = UserRepository(session, self.settings)
                 full_name = " ".join(part for part in [telegram_user.first_name, telegram_user.last_name] if part)
@@ -31,6 +36,8 @@ class DbUserMiddleware(BaseMiddleware):
                 reset_daily_counts_if_needed(user, user.timezone or self.settings.default_timezone)
                 data["db_user"] = user
                 data["language"] = user.language or self.settings.default_language
+            else:
+                data["language"] = self.settings.default_language
             result = await handler(event, data)
             await session.commit()
             return result

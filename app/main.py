@@ -1,7 +1,11 @@
 from __future__ import annotations
 
 import asyncio
+import sys
 from pathlib import Path
+
+if __package__ in {None, ""}:
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
@@ -31,6 +35,7 @@ async def run_bot() -> None:
 
     bot = Bot(settings.telegram_bot_token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
     dp = Dispatcher(settings=settings)
+    dp["settings"] = settings
     dp.update.middleware(DbUserMiddleware(session_factory, settings))
     dp.include_router(start.router)
     dp.include_router(analysis.router)

@@ -182,13 +182,23 @@ class FundamentalAnalyzer:
             f"Language: {language}\nScores: {scores}\n"
             f"News: {[item.to_dict() for item in news_items]}\nCalendar: {[item.to_dict() for item in events]}\nMacro: {macro or {}}"
         )
-        try:
-            response = await self.openai.responses.create(
-                model=self.settings.openai_text_model,
-                input=prompt,
-                temperature=self.settings.openai_temperature,
-                max_output_tokens=900,
-            )
-            return response.output_text.strip() or fallback
-        except Exception:
-            return fallback
+        for model in self.settings.openai_model_candidates(self.settings.openai_text_model):
+            try:
+                response = await self.openai.responses.create(
+                    model=model,
+                    input=prompt,
+                    temperature=self.settings.openai_temperature,
+                    max_output_tokens=900,
+                )
+                return response.output_text.strip() or fallback
+            except Exception:
+                try:
+                    response = await self.openai.responses.create(
+                        model=model,
+                        input=prompt,
+                        max_output_tokens=900,
+                    )
+                    return response.output_text.strip() or fallback
+                except Exception:
+                    continue
+        return fallback

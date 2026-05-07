@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     openai_api_key: str = Field(default="", alias="OPENAI_API_KEY")
     openai_text_model: str = Field(default="gpt-5.5", alias="OPENAI_TEXT_MODEL")
     openai_vision_model: str = Field(default="gpt-5.5", alias="OPENAI_VISION_MODEL")
+    openai_fallback_models: str = Field(default="gpt-5.2,gpt-5.1,gpt-5", alias="OPENAI_FALLBACK_MODELS")
     openai_temperature: float = Field(default=0.2, alias="OPENAI_TEMPERATURE")
     openai_max_tokens: int = Field(default=3500, alias="OPENAI_MAX_TOKENS")
     enable_vision_analysis: bool = Field(default=True, alias="ENABLE_VISION_ANALYSIS")
@@ -118,6 +119,13 @@ class Settings(BaseSettings):
     @property
     def openai_vision_active(self) -> bool:
         return bool(self.openai_api_key and self.openai_vision_model and self.enable_vision_analysis)
+
+    def openai_model_candidates(self, primary: str | None) -> list[str]:
+        output: list[str] = []
+        for model in [primary or "", *list(_parse_strings(self.openai_fallback_models))]:
+            if model and model not in output:
+                output.append(model)
+        return output
 
     @property
     def redis_active(self) -> bool:

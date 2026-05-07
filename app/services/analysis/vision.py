@@ -22,28 +22,42 @@ class ChartVisionAnalyzer:
             "Do not promise profit and do not give overconfident financial advice. "
             f"Symbol: {symbol}. Language: {language}."
         )
-        try:
-            response = await self.client.responses.create(
-                model=self.settings.openai_vision_model,
-                input=[
-                    {
-                        "role": "user",
-                        "content": [
-                            {"type": "input_text", "text": prompt},
-                            {"type": "input_image", "image_url": f"data:image/png;base64,{encoded}"},
-                        ],
-                    }
+        last_error: Exception | None = None
+        payload = [
+            {
+                "role": "user",
+                "content": [
+                    {"type": "input_text", "text": prompt},
+                    {"type": "input_image", "image_url": f"data:image/png;base64,{encoded}"},
                 ],
-                temperature=self.settings.openai_temperature,
-                max_output_tokens=self.settings.openai_max_tokens,
-            )
-            return response.output_text.strip()
-        except Exception as exc:
-            if language == "ru":
-                return f"Не удалось выполнить GPT-анализ графика: {exc}"
-            if language == "en":
-                return f"Chart GPT analysis failed: {exc}"
-            return f"Grafik GPT analizi bajarilmadi: {exc}"
+            }
+        ]
+        for model in self.settings.openai_model_candidates(self.settings.openai_vision_model):
+            try:
+                response = await self.client.responses.create(
+                    model=model,
+                    input=payload,
+                    temperature=self.settings.openai_temperature,
+                    max_output_tokens=self.settings.openai_max_tokens,
+                )
+                return response.output_text.strip()
+            except Exception as exc:
+                last_error = exc
+                try:
+                    response = await self.client.responses.create(
+                        model=model,
+                        input=payload,
+                        max_output_tokens=self.settings.openai_max_tokens,
+                    )
+                    return response.output_text.strip()
+                except Exception as retry_exc:
+                    last_error = retry_exc
+                    continue
+        if language == "ru":
+            return f"Не удалось выполнить GPT-анализ графика: {last_error}"
+        if language == "en":
+            return f"Chart GPT analysis failed: {last_error}"
+        return f"Grafik GPT analizi bajarilmadi: {last_error}"
 
     def _no_model(self, language: str) -> str:
         if language == "ru":

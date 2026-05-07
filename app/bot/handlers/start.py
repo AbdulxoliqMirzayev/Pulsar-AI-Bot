@@ -16,18 +16,18 @@ router = Router(name="start")
 
 
 @router.message(CommandStart())
-async def command_start(message: Message, language: str) -> None:
+async def command_start(message: Message, language: str | None = None) -> None:
     await message.answer(pt(language, "start.welcome"))
     await message.answer(t(language, "start.choose_language"), reply_markup=language_keyboard())
 
 
 @router.message(Command("menu"))
-async def command_menu(message: Message, language: str) -> None:
+async def command_menu(message: Message, language: str | None = None) -> None:
     await message.answer(pt(language, "menu.title"), reply_markup=main_menu(language))
 
 
 @router.callback_query(F.data == "menu:language")
-async def choose_language(callback: CallbackQuery, language: str) -> None:
+async def choose_language(callback: CallbackQuery, language: str | None = None) -> None:
     await callback.message.answer(t(language, "start.choose_language"), reply_markup=language_keyboard())
     await callback.answer()
 
