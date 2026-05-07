@@ -12,7 +12,7 @@ Pulsar is a Telegram bot and MT5 algo trading toolkit focused on:
 
 ```bash
 cp .env.example .env
-python -m app.main
+python main.py
 ```
 
 Required:
@@ -39,8 +39,24 @@ After that, menus and replies are served in the selected language.
 
 ## Analysis Flow
 
-- Technical analysis pulls free OHLCV data where available, then checks market structure, key levels, order blocks, liquidity, FVG, volume profile, VWAP and indicator confluence.
+- Chart analysis pulls free OHLCV data where available, then checks market structure, key levels, order blocks, liquidity, FVG, volume profile, VWAP and indicator confluence. A user can also upload a chart screenshot for GPT-5.5 vision analysis.
 - Fundamental analysis pulls RSS/news/calendar/macro data and scores USD, XAUUSD, BTC and risk mood.
-- Chart analysis accepts a screenshot and sends it to the configured OpenAI vision model.
+- News analysis can generate a market-mood visual through OpenAI image generation, with a local Pulsar visual fallback.
+
+## Railway
+
+Set these Railway variables before deploy:
+
+- `TELEGRAM_BOT_TOKEN`
+- `OPENAI_API_KEY`
+- `OPENAI_TEXT_MODEL=gpt-5.5`
+- `OPENAI_VISION_MODEL=gpt-5.5`
+- `OPENAI_FALLBACK_MODELS=gpt-5.2,gpt-5.1,gpt-5`
+
+Railway start command is already configured as:
+
+```bash
+python main.py
+```
 
 See `DATA_SOURCES.md` and `ALGO_TRADING.md` for provider and MT5 details.

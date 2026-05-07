@@ -17,8 +17,9 @@ class ChartVisionAnalyzer:
             return self._no_model(language)
         encoded = base64.b64encode(image_bytes).decode("ascii")
         prompt = (
-            "Analyze this trading chart professionally. Focus on market structure, support/resistance, key levels, "
-            "order blocks, fair value gaps, liquidity pools, volume context if visible, and a short risk plan. "
+            "Analyze this trading chart professionally and concisely for Telegram. Focus on market structure, "
+            "support/resistance, key levels, order blocks, fair value gaps, liquidity pools, volume context if visible, "
+            "and a short risk plan. Use clear bullets and keep the answer under 1700 characters. "
             "Do not promise profit and do not give overconfident financial advice. "
             f"Symbol: {symbol}. Language: {language}."
         )
@@ -38,7 +39,7 @@ class ChartVisionAnalyzer:
                     model=model,
                     input=payload,
                     temperature=self.settings.openai_temperature,
-                    max_output_tokens=self.settings.openai_max_tokens,
+                    max_output_tokens=min(self.settings.openai_max_tokens, 1400),
                 )
                 return response.output_text.strip()
             except Exception as exc:
@@ -47,7 +48,7 @@ class ChartVisionAnalyzer:
                     response = await self.client.responses.create(
                         model=model,
                         input=payload,
-                        max_output_tokens=self.settings.openai_max_tokens,
+                        max_output_tokens=min(self.settings.openai_max_tokens, 1400),
                     )
                     return response.output_text.strip()
                 except Exception as retry_exc:

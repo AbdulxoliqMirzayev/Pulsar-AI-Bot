@@ -12,7 +12,7 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
-from app.bot.handlers import analysis, start
+from app.bot.handlers import analysis, chat, start
 from app.bot.middlewares.db import DbUserMiddleware
 from app.config import get_settings
 from app.db.models import Base
@@ -39,6 +39,7 @@ async def run_bot() -> None:
     dp.update.middleware(DbUserMiddleware(session_factory, settings))
     dp.include_router(start.router)
     dp.include_router(analysis.router)
+    dp.include_router(chat.router)
     await dp.start_polling(bot)
 
 

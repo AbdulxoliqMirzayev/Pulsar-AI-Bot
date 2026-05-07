@@ -2,23 +2,25 @@
   "start": {
     "choose_language": "Choose language:",
     "saved": "Language saved. The bot will now reply in English.",
-    "welcome": "Welcome to Pulsar: a professional forex, gold, and crypto analysis bot."
+    "welcome": "Welcome. I am Pulsar AI: a friendly professional agent for chart analysis, news impact, risk planning, and trading decisions."
   },
   "menu": {
-    "title": "Choose a section:",
+    "title": "Choose a section, or just send me a normal question:",
     "technical": "Technical analysis",
-    "news": "News/fundamental",
-    "calendar": "Calendar",
-    "vision": "Chart analysis",
-    "journal": "Trading journal",
-    "algo": "Algo Trading",
-    "language": "Language"
+    "news": "🗞 News + AI image",
+    "calendar": "🗓 Calendar",
+    "vision": "📈 Chart analysis",
+    "journal": "📒 Trading journal",
+    "algo": "🤖 Algo Trading",
+    "language": "🌐 Language"
   },
   "analysis": {
     "loading": "Fetching market data and running analysis...",
+    "chart_loading": "Chart intelligence is running: data, SMC/ICT, indicators, and risk zones are being checked...",
+    "news_loading": "News radar is active: latest stories, calendar, USD/XAUUSD impact, and visual sentiment are being prepared...",
     "no_data": "Not enough data for this symbol yet.",
-    "technical_title": "Technical analysis",
-    "fundamental_title": "Fundamental analysis",
+    "technical_title": "Chart analysis",
+    "fundamental_title": "News and fundamental analysis",
     "calendar_title": "Economic calendar",
     "vision_prompt": "Send a chart screenshot. GPT-5.5 will analyze SMC/ICT and key levels."
   },

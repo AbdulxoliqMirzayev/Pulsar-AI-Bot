@@ -178,7 +178,7 @@ class FundamentalAnalyzer:
             return fallback
         prompt = (
             "You are a professional macro/FX analyst. Write a concise Telegram-ready market note in the requested language. "
-            "Focus on USD and XAUUSD impact, mention uncertainty, no financial advice. "
+            "Focus on USD and XAUUSD impact, mention uncertainty, no financial advice. Keep it under 1500 characters. "
             f"Language: {language}\nScores: {scores}\n"
             f"News: {[item.to_dict() for item in news_items]}\nCalendar: {[item.to_dict() for item in events]}\nMacro: {macro or {}}"
         )

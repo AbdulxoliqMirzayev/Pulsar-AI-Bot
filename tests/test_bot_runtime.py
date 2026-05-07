@@ -13,6 +13,8 @@ from app.db.models import Base
 from app.db.session import make_engine
 from app.services.analysis.technical import TechnicalAnalyzer
 from app.services.market_data.models import Candle
+from app.services.visuals.cards import render_chart_card, render_news_card
+from app.utils.telegram_messages import split_telegram_text
 
 
 class FakeTelegramUser:
@@ -92,8 +94,9 @@ def test_keyboards_have_buttons():
     assert language_keyboard().inline_keyboard
     menu = main_menu("ru")
     button_texts = [button.text for row in menu.inline_keyboard for button in row]
-    assert "Технический анализ" in button_texts
-    assert "Algo Trading" in button_texts
+    assert "📈 Анализ графика" in button_texts
+    assert "Технический анализ" not in button_texts
+    assert "🤖 Algo Trading" in button_texts
 
 
 def test_openai_model_candidates_keep_gpt55_primary():
@@ -121,3 +124,46 @@ def test_technical_analyzer_returns_report():
     assert report.symbol == "XAUUSD"
     assert report.indicators["rsi14"] >= 0
     assert report.summary
+
+
+def test_telegram_text_splitter_keeps_chunks_under_limit():
+    chunks = split_telegram_text("A" * 8500, limit=3900)
+    assert len(chunks) == 3
+    assert all(len(chunk) <= 3900 for chunk in chunks)
+
+
+def test_visual_cards_render_png_bytes():
+    report = TechnicalAnalyzer().analyze("XAUUSD", _fake_candles(), "15m").to_dict()
+    chart = render_chart_card(report, "uz")
+    news = render_news_card(
+        {
+            "usd_bias": "bullish",
+            "xauusd_bias": "bearish",
+            "btc_bias": "neutral",
+            "risk_mood": "mixed",
+            "confidence": 61,
+            "key_news": [{"title": "Fed policy expectations keep investors careful"}],
+        },
+        "en",
+    )
+    assert chart.startswith(b"\x89PNG")
+    assert news.startswith(b"\x89PNG")
+
+
+def _fake_candles() -> list[Candle]:
+    candles = []
+    base = 2000.0
+    now = datetime.now(UTC)
+    for i in range(260):
+        close = base + i * 0.25 + ((i % 9) - 4) * 0.35
+        candles.append(
+            Candle(
+                time=now + timedelta(minutes=i * 15),
+                open=close - 0.4,
+                high=close + 1.2,
+                low=close - 1.1,
+                close=close,
+                volume=1000 + i,
+            )
+        )
+    return candles

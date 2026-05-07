@@ -2,25 +2,27 @@
   "start": {
     "choose_language": "Tilni tanlang:",
     "saved": "Til saqlandi. Bot endi o'zbek tilida xizmat qiladi.",
-    "welcome": "Assalomu alaykum. Pulsar professional forex, gold, crypto analiz botiga xush kelibsiz."
+    "welcome": "Assalomu alaykum. Men Pulsar AI agentman: grafik, yangilik, risk va trading reja bo'yicha do'stona-professional yordam beraman."
   },
   "menu": {
-    "title": "Kerakli bo'limni tanlang:",
+    "title": "Kerakli bo'limni tanlang yoki savolingizni oddiy xabar qilib yozing:",
     "technical": "Texnik analiz",
-    "news": "Yangilik/fundamental",
-    "calendar": "Kalendar",
-    "vision": "Grafik analiz",
-    "journal": "Trading jurnal",
-    "algo": "Algo Trading",
-    "language": "Til"
+    "news": "🗞 News + AI rasm",
+    "calendar": "🗓 Kalendar",
+    "vision": "📈 Grafik analiz",
+    "journal": "📒 Trading jurnal",
+    "algo": "🤖 Algo Trading",
+    "language": "🌐 Til"
   },
   "analysis": {
     "loading": "Bozor ma'lumotlari olinmoqda va analiz qilinmoqda...",
+    "chart_loading": "Grafik razvedka ishga tushdi: data, SMC/ICT, indikatorlar va risk zonalari tekshirilmoqda...",
+    "news_loading": "News radar ishga tushdi: so'nggi yangiliklar, kalendar, USD/XAUUSD ta'siri va vizual sentiment tayyorlanmoqda...",
     "no_data": "Hozircha bu symbol uchun yetarli data topilmadi.",
-    "technical_title": "Texnik analiz",
-    "fundamental_title": "Fundamental analiz",
+    "technical_title": "Grafik analiz",
+    "fundamental_title": "News va fundamental analiz",
     "calendar_title": "Iqtisodiy kalendar",
-    "vision_prompt": "Grafik rasmini yuboring. GPT-5.5 SMC/ICT va key level asosida tahlil qiladi."
+    "vision_prompt": "Grafik rasmini yuboring. GPT-5.5 uni SMC/ICT, support/resistance, order block, likvid zona va risk rejasi bo'yicha tahlil qiladi."
   },
   "journal": {
     "title": "Trading jurnal",
