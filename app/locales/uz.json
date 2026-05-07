@@ -12,6 +12,7 @@
     "vision": "📈 Grafik analiz",
     "journal": "📒 Trading jurnal",
     "algo": "🤖 Algo Trading",
+    "agent": "🧠 AI Agent",
     "language": "🌐 Til"
   },
   "analysis": {
@@ -31,7 +32,7 @@
   },
   "algo": {
     "title": "Algo Trading",
-    "text": "MT5 uchun EA fayli: mql5/AlgoTradingBot_v1.mq5. Uni MetaEditor'da compile qiling, Strategy Tester'da sinang, keyin demo hisobda ishga tushiring. Risk hard cap: 5%."
+    "text": "Ulash tartibi:\n1. Pastdagi AlgoTradingBot_v1.mq5 faylni MT5 > File > Open Data Folder > MQL5 > Experts ichiga qo'ying.\n2. MetaEditor'da faylni ochib Compile bosing.\n3. MT5 Strategy Tester'da demo test qiling.\n4. Demo chartga EA ni tashlang va Algo Trading tugmasini yoqing.\n5. Risk hard cap: 5%. Live hisobga shoshilmang."
   },
   "errors": {
     "generic": "Xatolik yuz berdi. Keyinroq qayta urinib ko'ring."

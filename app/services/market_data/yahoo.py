@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 
 import httpx
 
-from app.services.market_data.models import Candle
+from app.services.market_data.models import Candle, MarketQuote
 
 
 YAHOO_SYMBOLS = {
@@ -60,3 +60,39 @@ class YahooChartClient:
                 )
             )
         return output
+
+    async def quote(self, symbol: str) -> MarketQuote:
+        yahoo_symbol = YAHOO_SYMBOLS.get(symbol.upper())
+        if not yahoo_symbol:
+            return MarketQuote(symbol=symbol.upper(), price=None, provider="yahoo")
+        response = await self.client.get(
+            f"https://query1.finance.yahoo.com/v8/finance/chart/{yahoo_symbol}",
+            params={"range": "1d", "interval": "1m"},
+        )
+        response.raise_for_status()
+        result = (response.json().get("chart", {}).get("result") or [None])[0]
+        if not result:
+            return MarketQuote(symbol=symbol.upper(), price=None, provider="yahoo")
+        meta = result.get("meta", {})
+        price = meta.get("regularMarketPrice") or meta.get("previousClose")
+        previous = meta.get("previousClose")
+        change_percent = None
+        if price is not None and previous:
+            change_percent = (float(price) - float(previous)) / float(previous) * 100
+        quote = (result.get("indicators", {}).get("quote") or [{}])[0]
+        high = low = None
+        if quote:
+            highs = [item for item in quote.get("high", []) if item is not None]
+            lows = [item for item in quote.get("low", []) if item is not None]
+            if highs:
+                high = float(max(highs))
+            if lows:
+                low = float(min(lows))
+        return MarketQuote(
+            symbol=symbol.upper(),
+            price=float(price) if price is not None else None,
+            change_percent=change_percent,
+            high_24h=high,
+            low_24h=low,
+            provider="yahoo",
+        )

@@ -17,11 +17,19 @@ class ChartVisionAnalyzer:
             return self._no_model(language)
         encoded = base64.b64encode(image_bytes).decode("ascii")
         prompt = (
-            "Analyze this trading chart professionally and concisely for Telegram. Focus on market structure, "
-            "support/resistance, key levels, order blocks, fair value gaps, liquidity pools, volume context if visible, "
-            "and a short risk plan. Use clear bullets and keep the answer under 1700 characters. "
-            "Do not promise profit and do not give overconfident financial advice. "
-            f"Symbol: {symbol}. Language: {language}."
+            "You are Pulsar AI chart signal engine. Detect the trading pair and timeframe from the screenshot if visible. "
+            "Return ONLY this compact Telegram signal format, in the requested language, under 900 characters:\n"
+            "📌 Xulosa: exactly 5 words, include BUY or SELL or WAIT\n"
+            "💱 Para: SYMBOL | ⏱ TF: TIMEFRAME\n"
+            "🔴/🟢 Yo'nalish: SELL/BUY/WAIT\n"
+            "🎯 Entry: price-zone or 'zona kelmaguncha limit'\n"
+            "🛡 Stop Loss: price\n"
+            "✅ Take Profit: price\n"
+            "🧠 Sabab: one short sentence about resistance/support, liquidity, OB/FVG or structure\n"
+            "⚠️ Bozor har daqiqada o'zgarishi mumkin.\n"
+            "If the chart has not reached the zone, write that a limit order can be considered. "
+            "Do not promise profit. Do not add long education. "
+            f"Default symbol if not visible: {symbol}. Language: {language}."
         )
         last_error: Exception | None = None
         payload = [
@@ -39,7 +47,7 @@ class ChartVisionAnalyzer:
                     model=model,
                     input=payload,
                     temperature=self.settings.openai_temperature,
-                    max_output_tokens=min(self.settings.openai_max_tokens, 1400),
+                    max_output_tokens=min(self.settings.openai_max_tokens, 750),
                 )
                 return response.output_text.strip()
             except Exception as exc:
@@ -48,7 +56,7 @@ class ChartVisionAnalyzer:
                     response = await self.client.responses.create(
                         model=model,
                         input=payload,
-                        max_output_tokens=min(self.settings.openai_max_tokens, 1400),
+                        max_output_tokens=min(self.settings.openai_max_tokens, 750),
                     )
                     return response.output_text.strip()
                 except Exception as retry_exc:

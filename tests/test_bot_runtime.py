@@ -35,9 +35,22 @@ class FakeUpdateEvent:
 class FakeMessage:
     def __init__(self) -> None:
         self.answers: list[tuple[str, object | None]] = []
+        self.chat = type("Chat", (), {"id": 1001})()
+        self.bot = type("Bot", (), {"delete_message": self._delete_message})()
+        self.message_id = 77
+        self.deleted = False
 
     async def answer(self, text: str, reply_markup=None):
         self.answers.append((text, reply_markup))
+        sent = FakeMessage()
+        sent.message_id = len(self.answers)
+        return sent
+
+    async def delete(self):
+        self.deleted = True
+
+    async def _delete_message(self, chat_id: int, message_id: int):
+        return True
 
 
 @pytest.mark.asyncio
@@ -97,6 +110,7 @@ def test_keyboards_have_buttons():
     assert "📈 Анализ графика" in button_texts
     assert "Технический анализ" not in button_texts
     assert "🤖 Algo Trading" in button_texts
+    assert "🧠 AI Agent" in button_texts
 
 
 def test_openai_model_candidates_keep_gpt55_primary():

@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import re
+from pathlib import Path
+
 from aiogram import F, Router
 from aiogram.enums import ChatAction
-from aiogram.types import BufferedInputFile, CallbackQuery, Message
+from aiogram.types import BufferedInputFile, CallbackQuery, FSInputFile, Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.bot.keyboards.common import main_menu
@@ -17,6 +20,7 @@ from app.services.analysis.vision import ChartVisionAnalyzer
 from app.services.fundamental.analyzer import FundamentalAnalyzer
 from app.services.fundamental.visual import NewsImageGenerator
 from app.services.market_data.service import MarketDataService
+from app.services.rag.market_context import MarketRAGContext
 from app.services.visuals.cards import render_chart_card
 from app.utils.formatters import h, price
 from app.utils.i18n import pt, t
@@ -94,11 +98,14 @@ async def news(callback: CallbackQuery, settings: Settings, language: str | None
             await NewsRepository(session).save_many(report.key_news)
             await CalendarRepository(session).save_many(report.key_events)
         image, source = await image_generator.generate(report, language)
+        prices = await _live_prices(settings)
+        report_dict = report.to_dict()
+        report_dict["market_prices"] = prices
         await callback.message.answer_photo(
             BufferedInputFile(image, filename="pulsar_news.png"),
-            caption=_short_news_caption(report.to_dict(), language, source),
+            caption=_short_news_caption(report_dict, language, source),
         )
-        await answer_long(callback.message, _format_fundamental(report.to_dict(), language), reply_markup=main_menu(language))
+        await callback.message.answer(_format_fundamental(report_dict, language), reply_markup=main_menu(language))
     except Exception as exc:
         await callback.message.answer(f"{pt(language, 'errors.generic')}\n<code>{h(exc)}</code>", reply_markup=main_menu(language))
     finally:
@@ -128,13 +135,13 @@ async def vision_photo(message: Message, settings: Settings, language: str | Non
     photo = message.photo[-1]
     image = await download_file_bytes(message.bot, photo.file_id)
     analyzer = ChartVisionAnalyzer(settings)
-    text = await analyzer.analyze(image, language=language, symbol=settings.technical_default_symbol)
+    text = h(await analyzer.analyze(image, language=language, symbol=settings.technical_default_symbol))
     service = MarketDataService(settings)
     try:
-        candles = await service.candles(settings.technical_default_symbol, "15m", 240)
-        if candles:
-            report = TechnicalAnalyzer().analyze(settings.technical_default_symbol, candles, "15m")
-            text = f"{text}\n\n{_format_chart(report.to_dict(), language)}"
+        symbol = _detect_symbol(text) or settings.technical_default_symbol
+        quote = await service.quote(symbol)
+        if quote.price is not None:
+            text = f"{text}\n📡 Real-time: {h(symbol)} {price(quote.price)}"
     except Exception:
         pass
     finally:
@@ -166,6 +173,12 @@ async def journal(callback: CallbackQuery, language: str | None = None, session:
 async def algo(callback: CallbackQuery, language: str | None = None) -> None:
     await safe_callback_answer(callback)
     await answer_long(callback.message, f"<b>{h(t(language, 'algo.title'))}</b>\n{h(t(language, 'algo.text'))}", reply_markup=main_menu(language))
+    ea_path = Path("mql5/AlgoTradingBot_v1.mq5")
+    if ea_path.exists():
+        await callback.message.answer_document(
+            FSInputFile(ea_path),
+            caption="MT5 ga ulash uchun asosiy EA fayl. MetaEditor ichida compile qiling.",
+        )
 
 
 def _format_chart(report: dict, language: str | None) -> str:
@@ -194,28 +207,71 @@ def _short_chart_caption(report: dict, language: str | None) -> str:
 
 
 def _format_fundamental(report: dict, language: str) -> str:
+    prices = _format_prices(report.get("market_prices") or [])
+    top_news = report["key_news"][:3]
     lines = [
-        f"<b>{h(t(language, 'analysis.fundamental_title'))}</b>",
+        f"<b>🗞 {h(t(language, 'analysis.fundamental_title'))}</b>",
+        f"📡 {h(prices)}",
         f"USD: <b>{h(report['usd_bias'])}</b> | XAUUSD: <b>{h(report['xauusd_bias'])}</b> | BTC: <b>{h(report['btc_bias'])}</b>",
-        f"Risk: {h(report['risk_mood'])} | Confidence: {report['confidence']}%",
-        "",
-        h(report["summary"]),
+        f"Risk: {h(report['risk_mood'])} | Ishonch: {report['confidence']}%",
+        f"🧠 {h(_trim(report['summary'], 520))}",
     ]
-    if report["key_news"]:
-        lines.append("\n<b>News</b>")
-        for item in report["key_news"][:5]:
-            lines.append(f"- {h(item['title'])} ({h(item['source'])})")
-    if report["key_events"]:
-        lines.append("\n<b>Calendar</b>")
-        for item in report["key_events"][:5]:
-            lines.append(f"- {h(item['event_name'])}: A {h(item['actual'])} / F {h(item['forecast'])}")
+    for item in top_news:
+        lines.append(f"• {h(_trim(item['title'], 105))}")
+    lines.append("⚠️ Bozor har daqiqada o'zgarishi mumkin.")
     return "\n".join(lines)
 
 
 def _short_news_caption(report: dict, language: str | None, source: str) -> str:
     visual = "GPT image" if source == "openai" else "Pulsar visual"
+    news_line = _trim((report.get("key_news") or [{}])[0].get("title", "Fresh market news"), 140)
     return (
-        f"<b>{h(t(language, 'analysis.fundamental_title'))}</b>\n"
-        f"USD: {h(report['usd_bias'])} | XAUUSD: {h(report['xauusd_bias'])}\n"
-        f"Risk: {h(report['risk_mood'])} | Confidence: {report['confidence']}% | {visual}"
+        f"<b>🗞 {h(t(language, 'analysis.fundamental_title'))}</b>\n"
+        f"📡 {h(_format_prices(report.get('market_prices') or []))}\n"
+        f"XAUUSD: {h(report['xauusd_bias'])} | USD: {h(report['usd_bias'])} | {visual}\n"
+        f"🧠 {h(news_line)}"
     )
+
+
+async def _live_prices(settings: Settings) -> list[dict]:
+    rag = MarketRAGContext(settings)
+    try:
+        return await rag.live_quotes()
+    finally:
+        await rag.close()
+
+
+def _format_prices(quotes: list[dict]) -> str:
+    parts = []
+    for quote in quotes:
+        value = quote.get("price")
+        if value is None:
+            parts.append(f"{quote.get('symbol')}: n/a")
+            continue
+        change = quote.get("change_percent")
+        change_text = "" if change is None else f" {change:+.2f}%"
+        parts.append(f"{quote.get('symbol')}: {price(value)}{change_text}")
+    return " | ".join(parts) or "XAUUSD/BTCUSD/DXY: n/a"
+
+
+def _detect_symbol(text: str) -> str | None:
+    upper = text.upper()
+    patterns = {
+        "XAUUSD": r"\b(XAUUSD|XAU/USD|GOLD|OLTIN)\b",
+        "BTCUSD": r"\b(BTCUSD|BTC/USD|BTCUSDT|BITCOIN)\b",
+        "DXY": r"\b(DXY|USDX|DOLLAR INDEX)\b",
+        "EURUSD": r"\b(EURUSD|EUR/USD)\b",
+        "GBPUSD": r"\b(GBPUSD|GBP/USD)\b",
+        "USDJPY": r"\b(USDJPY|USD/JPY)\b",
+    }
+    for symbol, pattern in patterns.items():
+        if re.search(pattern, upper):
+            return symbol
+    return None
+
+
+def _trim(text: str, limit: int) -> str:
+    text = " ".join(str(text or "").split())
+    if len(text) <= limit:
+        return text
+    return text[: max(0, limit - 1)].rstrip() + "…"

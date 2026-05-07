@@ -30,7 +30,8 @@ def main_menu(language: str | None) -> InlineKeyboardMarkup:
             ],
             [
                 InlineKeyboardButton(text=t(language, "menu.algo"), callback_data="menu:algo"),
-                InlineKeyboardButton(text=t(language, "menu.language"), callback_data="menu:language"),
+                InlineKeyboardButton(text=t(language, "menu.agent"), callback_data="menu:agent"),
             ],
+            [InlineKeyboardButton(text=t(language, "menu.language"), callback_data="menu:language")],
         ]
     )

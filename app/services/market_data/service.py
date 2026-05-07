@@ -14,8 +14,11 @@ from app.services.market_data.yahoo import YahooChartClient
 SYMBOL_ALIASES = {
     "BTC": "BTCUSDT",
     "BTCUSD": "BTCUSDT",
+    "BTC/USD": "BTCUSDT",
     "XAU": "XAUUSD",
+    "XAU/USD": "XAUUSD",
     "GOLD": "XAUUSD",
+    "USDX": "DXY",
 }
 
 
@@ -70,5 +73,12 @@ class MarketDataService:
             try:
                 return await self.binance.quote("XAUTUSDT")
             except httpx.HTTPError:
-                return await self.binance.quote("PAXGUSDT")
+                try:
+                    return await self.binance.quote("PAXGUSDT")
+                except httpx.HTTPError:
+                    return await self.yahoo.quote("XAUUSD")
+        if normalized in {"DXY", "EURUSD", "GBPUSD", "USDJPY"}:
+            return await self.yahoo.quote(normalized)
+        if len(normalized) == 6 and normalized.endswith("USD"):
+            return await self.yahoo.quote(normalized)
         return MarketQuote(symbol=normalized, price=None)

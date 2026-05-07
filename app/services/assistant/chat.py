@@ -10,15 +10,16 @@ class PulsarChatAgent:
         self.settings = settings
         self.client = AsyncOpenAI(api_key=settings.openai_api_key) if settings.openai_api_key else None
 
-    async def reply(self, user_text: str, language: str | None = "uz") -> str:
+    async def reply(self, user_text: str, language: str | None = "uz", market_context: str | None = None) -> str:
         if not self.client or not self.settings.openai_text_active:
-            return self._fallback(user_text, language)
+            return self._fallback(user_text, language, market_context)
         prompt = (
             "You are Pulsar AI, a warm but professional trading and productivity assistant inside Telegram. "
             "Reply like a capable human analyst: friendly, concise, practical, and never overconfident. "
             "You can help with trading calculations, risk planning, journal reflection, market context, MT5 setup, and general questions. "
             "For trading, always mention risk and uncertainty when relevant. Do not promise profit. "
-            f"Answer language: {language or 'uz'}.\nUser: {user_text}"
+            "If market context is provided, use it as retrieved live context (RAG) and keep the answer short. "
+            f"Answer language: {language or 'uz'}.\nMarket context: {market_context or 'none'}\nUser: {user_text}"
         )
         for model in self.settings.openai_model_candidates(self.settings.openai_text_model):
             try:
@@ -39,9 +40,15 @@ class PulsarChatAgent:
                         return text
                 except Exception:
                     continue
-        return self._fallback(user_text, language)
+        return self._fallback(user_text, language, market_context)
 
-    def _fallback(self, user_text: str, language: str | None) -> str:
+    def _fallback(self, user_text: str, language: str | None, market_context: str | None = None) -> str:
+        if market_context:
+            if language == "ru":
+                return f"Live context: {market_context}\nНапишите, какой инструмент разобрать глубже."
+            if language == "en":
+                return f"Live context: {market_context}\nSend the instrument you want me to break down deeper."
+            return f"Live context: {market_context}\nQaysi instrumentni chuqurroq ko'rib chiqamiz?"
         if language == "ru":
             return (
                 "Я рядом. Сейчас GPT-модуль недоступен, но я всё равно помогу: напишите символ, риск, депозит или вопрос, "

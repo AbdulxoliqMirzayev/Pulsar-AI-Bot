@@ -12,6 +12,7 @@
     "vision": "📈 Анализ графика",
     "journal": "📒 Trading журнал",
     "algo": "🤖 Algo Trading",
+    "agent": "🧠 AI Agent",
     "language": "🌐 Язык"
   },
   "analysis": {
@@ -31,7 +32,7 @@
   },
   "algo": {
     "title": "Algo Trading",
-    "text": "EA файл для MT5: mql5/AlgoTradingBot_v1.mq5. Скомпилируйте его в MetaEditor, проверьте в Strategy Tester, затем запускайте на demo счете. Жесткий лимит риска: 5%."
+    "text": "Как подключить:\n1. Файл AlgoTradingBot_v1.mq5 ниже положите в MT5 > File > Open Data Folder > MQL5 > Experts.\n2. Откройте файл в MetaEditor и нажмите Compile.\n3. Проверьте в MT5 Strategy Tester на demo.\n4. Перетащите EA на demo chart и включите Algo Trading.\n5. Жесткий лимит риска: 5%. На live не спешим."
   },
   "errors": {
     "generic": "Произошла ошибка. Попробуйте позже."
