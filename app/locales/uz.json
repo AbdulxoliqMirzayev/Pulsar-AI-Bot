@@ -1,0 +1,37 @@
+{
+  "start": {
+    "choose_language": "Tilni tanlang:",
+    "saved": "Til saqlandi. Bot endi o'zbek tilida xizmat qiladi.",
+    "welcome": "Assalomu alaykum. Pulsar professional forex, gold, crypto analiz botiga xush kelibsiz."
+  },
+  "menu": {
+    "title": "Kerakli bo'limni tanlang:",
+    "technical": "Texnik analiz",
+    "news": "Yangilik/fundamental",
+    "calendar": "Kalendar",
+    "vision": "Grafik analiz",
+    "journal": "Trading jurnal",
+    "algo": "Algo Trading",
+    "language": "Til"
+  },
+  "analysis": {
+    "loading": "Bozor ma'lumotlari olinmoqda va analiz qilinmoqda...",
+    "no_data": "Hozircha bu symbol uchun yetarli data topilmadi.",
+    "technical_title": "Texnik analiz",
+    "fundamental_title": "Fundamental analiz",
+    "calendar_title": "Iqtisodiy kalendar",
+    "vision_prompt": "Grafik rasmini yuboring. GPT-5.5 SMC/ICT va key level asosida tahlil qiladi."
+  },
+  "journal": {
+    "title": "Trading jurnal",
+    "empty": "Jurnalda hali yozuv yo'q.",
+    "stats": "Jurnal statistikasi"
+  },
+  "algo": {
+    "title": "Algo Trading",
+    "text": "MT5 uchun EA fayli: mql5/AlgoTradingBot_v1.mq5. Uni MetaEditor'da compile qiling, Strategy Tester'da sinang, keyin demo hisobda ishga tushiring. Risk hard cap: 5%."
+  },
+  "errors": {
+    "generic": "Xatolik yuz berdi. Keyinroq qayta urinib ko'ring."
+  }
+}

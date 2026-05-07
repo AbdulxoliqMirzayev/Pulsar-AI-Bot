@@ -1,0 +1,16 @@
+{
+  "rsi_period": 14,
+  "ema_fast": 9,
+  "ema_slow": 21,
+  "ema_trend": 200,
+  "bb_period": 20,
+  "bb_stddev": 2.0,
+  "atr_period": 14,
+  "atr_multiplier": 2.0,
+  "grid_spacing": 20,
+  "ob_lookback": 50,
+  "min_score": 12,
+  "rr_ratio": 2.0,
+  "risk_per_trade": 2.0,
+  "_fitness": 0.0
+}

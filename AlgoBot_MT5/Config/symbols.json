@@ -1,0 +1,20 @@
+{
+  "majors": ["EURUSD", "GBPUSD", "USDJPY", "USDCHF", "AUDUSD", "NZDUSD", "USDCAD"],
+  "crosses": [
+    "EURGBP", "EURJPY", "GBPJPY", "AUDJPY", "NZDJPY", "CADJPY", "CHFJPY",
+    "EURAUD", "EURNZD", "EURCAD", "EURCHF", "GBPAUD", "GBPNZD", "GBPCAD",
+    "GBPCHF", "AUDNZD", "AUDCAD", "AUDCHF", "NZDCAD", "NZDCHF", "CADCHF"
+  ],
+  "metals": ["XAUUSD"],
+  "crypto": ["BTCUSD", "BTCUSDT"],
+  "pip_overrides": {
+    "XAUUSD": 0.1,
+    "USDJPY": 0.01,
+    "JPY": 0.01
+  },
+  "sessions_utc": {
+    "asia": ["00:00", "04:00"],
+    "london_killzone": ["07:00", "10:00"],
+    "ny_killzone": ["13:00", "16:00"]
+  }
+}

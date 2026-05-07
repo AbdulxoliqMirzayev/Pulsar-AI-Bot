@@ -1,0 +1,77 @@
+{
+  "version": "3.0",
+  "risk": {
+    "risk_per_trade": 2.0,
+    "max_daily_risk": 5.0,
+    "max_drawdown": 10.0,
+    "hard_stop_drawdown": 15.0,
+    "max_open_positions": 5,
+    "min_rr_ratio": 1.5
+  },
+  "strategies": {
+    "min_score_to_trade": 12,
+    "use_ml": true,
+    "ml_min_confidence": 70,
+    "use_smc": true,
+    "use_elliott": true,
+    "use_grid": true,
+    "use_sentiment": true,
+    "use_arbitrage": false,
+    "use_prop_firm_mode": false,
+    "use_martingale": false
+  },
+  "timeframes": {
+    "trend_tf": "H4",
+    "structure_tf": "H1",
+    "entry_tf": "M15"
+  },
+  "indicators": {
+    "rsi_period": 14,
+    "rsi_overbought": 70,
+    "rsi_oversold": 30,
+    "ema_fast": 9,
+    "ema_slow": 21,
+    "ema_trend": 200,
+    "bb_period": 20,
+    "bb_stddev": 2.0,
+    "atr_period": 14,
+    "atr_multiplier": 2.0,
+    "macd_fast": 12,
+    "macd_slow": 26,
+    "macd_signal": 9,
+    "stoch_k": 5,
+    "stoch_d": 3,
+    "stoch_slowing": 3
+  },
+  "smc": {
+    "ob_lookback": 50,
+    "fvg_min_size_pips": 5,
+    "liquidity_sweep_pips": 3,
+    "use_killzones": true,
+    "killzone_london_start": "07:00",
+    "killzone_london_end": "10:00",
+    "killzone_ny_start": "13:00",
+    "killzone_ny_end": "16:00"
+  },
+  "grid": {
+    "spacing_pips": 20,
+    "max_levels": 5,
+    "max_exposure_pct": 3.0,
+    "activate_adx_below": 20
+  },
+  "prop_firm": {
+    "firm": "FTMO",
+    "max_daily_loss": 5.0,
+    "max_total_loss": 10.0,
+    "profit_target": 10.0,
+    "news_filter_minutes": 30,
+    "close_friday_time": "21:00"
+  },
+  "telegram": {
+    "enabled": true,
+    "send_trade_alerts": true,
+    "send_daily_report": true,
+    "daily_report_time": "21:00"
+  },
+  "symbols": ["EURUSD", "GBPUSD", "USDJPY", "XAUUSD", "GBPJPY"]
+}

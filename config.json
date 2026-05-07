@@ -1,0 +1,51 @@
+{
+  "symbols": ["XAUUSD", "BTCUSDT", "EURUSD", "GBPUSD", "USDJPY"],
+  "risk": {
+    "risk_percent": 5.0,
+    "hard_max_risk_percent": 5.0,
+    "max_drawdown_percent": 15.0,
+    "daily_risk_percent": 5.0,
+    "max_open_positions": 3,
+    "max_correlated_pairs": 2,
+    "min_rr": 1.5
+  },
+  "timeframes": {
+    "entry": "M15",
+    "structure": "H1",
+    "higher_timeframe": "H4"
+  },
+  "strategy_weights": {
+    "fibonacci": 1.0,
+    "gann": 0.6,
+    "order_blocks": 1.4,
+    "bos_choch": 1.3,
+    "liquidity": 1.3,
+    "fvg": 1.0,
+    "rsi_divergence": 0.8,
+    "ema_crossover": 1.0,
+    "volume_profile_vwap": 1.2,
+    "bollinger_squeeze": 0.8,
+    "macd": 0.8,
+    "support_resistance": 1.2,
+    "ict_killzones": 1.0,
+    "stochastic": 0.6,
+    "atr_trailing": 0.8,
+    "engulfing": 0.8,
+    "wick_rejection": 0.8,
+    "premium_discount": 1.0,
+    "martingale_safety": 0.0,
+    "mtf_confluence": 1.5
+  },
+  "ml": {
+    "enabled": true,
+    "model": "feedforward_15_32_16_3",
+    "retrain_every_bars": 500,
+    "min_probability": 0.62
+  },
+  "data_sources": {
+    "market_data": ["MEXC public REST", "CoinGecko Demo API", "Alpha Vantage FX daily"],
+    "calendar": ["Trading Economics guest:guest", "ForexFactory/Faireconomy XML"],
+    "macro": ["FRED API"],
+    "news": ["FXStreet RSS", "CoinDesk RSS", "Cointelegraph RSS", "NewsAPI optional", "CryptoPanic optional"]
+  }
+}

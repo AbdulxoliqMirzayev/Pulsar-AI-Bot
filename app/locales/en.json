@@ -1,0 +1,37 @@
+{
+  "start": {
+    "choose_language": "Choose language:",
+    "saved": "Language saved. The bot will now reply in English.",
+    "welcome": "Welcome to Pulsar: a professional forex, gold, and crypto analysis bot."
+  },
+  "menu": {
+    "title": "Choose a section:",
+    "technical": "Technical analysis",
+    "news": "News/fundamental",
+    "calendar": "Calendar",
+    "vision": "Chart analysis",
+    "journal": "Trading journal",
+    "algo": "Algo Trading",
+    "language": "Language"
+  },
+  "analysis": {
+    "loading": "Fetching market data and running analysis...",
+    "no_data": "Not enough data for this symbol yet.",
+    "technical_title": "Technical analysis",
+    "fundamental_title": "Fundamental analysis",
+    "calendar_title": "Economic calendar",
+    "vision_prompt": "Send a chart screenshot. GPT-5.5 will analyze SMC/ICT and key levels."
+  },
+  "journal": {
+    "title": "Trading journal",
+    "empty": "No journal entries yet.",
+    "stats": "Journal statistics"
+  },
+  "algo": {
+    "title": "Algo Trading",
+    "text": "MT5 EA file: mql5/AlgoTradingBot_v1.mq5. Compile it in MetaEditor, test in Strategy Tester, then run on a demo account. Risk hard cap: 5%."
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again later."
+  }
+}

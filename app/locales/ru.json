@@ -1,0 +1,37 @@
+{
+  "start": {
+    "choose_language": "Выберите язык:",
+    "saved": "Язык сохранен. Теперь бот будет отвечать на русском языке.",
+    "welcome": "Добро пожаловать в Pulsar: профессиональный бот для анализа forex, gold и crypto."
+  },
+  "menu": {
+    "title": "Выберите раздел:",
+    "technical": "Технический анализ",
+    "news": "Новости/фундаментал",
+    "calendar": "Календарь",
+    "vision": "Анализ графика",
+    "journal": "Trading журнал",
+    "algo": "Algo Trading",
+    "language": "Язык"
+  },
+  "analysis": {
+    "loading": "Получаю рыночные данные и анализирую...",
+    "no_data": "Пока нет достаточно данных по этому символу.",
+    "technical_title": "Технический анализ",
+    "fundamental_title": "Фундаментальный анализ",
+    "calendar_title": "Экономический календарь",
+    "vision_prompt": "Отправьте скриншот графика. GPT-5.5 выполнит анализ по SMC/ICT и key levels."
+  },
+  "journal": {
+    "title": "Trading журнал",
+    "empty": "В журнале пока нет записей.",
+    "stats": "Статистика журнала"
+  },
+  "algo": {
+    "title": "Algo Trading",
+    "text": "EA файл для MT5: mql5/AlgoTradingBot_v1.mq5. Скомпилируйте его в MetaEditor, проверьте в Strategy Tester, затем запускайте на demo счете. Жесткий лимит риска: 5%."
+  },
+  "errors": {
+    "generic": "Произошла ошибка. Попробуйте позже."
+  }
+}

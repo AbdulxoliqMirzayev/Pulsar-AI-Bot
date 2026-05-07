@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pulsar Algo Dashboard</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #101418;
+      --panel: #171d23;
+      --line: #2b3640;
+      --text: #edf2f7;
+      --muted: #9aa7b2;
+      --good: #33d17a;
+      --bad: #ff6b6b;
+      --warn: #f6c85f;
+      --accent: #5ab0ff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    header, main { max-width: 1180px; margin: 0 auto; padding: 18px; }
+    header { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); }
+    h1 { margin: 0; font-size: 22px; }
+    .status { color: var(--good); font-weight: 700; }
+    .grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+    .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 14px; }
+    .label { color: var(--muted); font-size: 12px; text-transform: uppercase; }
+    .value { font-size: 24px; margin-top: 8px; font-weight: 700; }
+    .wide { grid-column: span 2; }
+    canvas { width: 100%; height: 260px; border: 1px solid var(--line); border-radius: 8px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 10px; border-bottom: 1px solid var(--line); text-align: left; font-size: 14px; }
+    th { color: var(--muted); font-weight: 600; }
+    .buy { color: var(--good); }
+    .sell { color: var(--bad); }
+    @media (max-width: 800px) {
+      .grid { grid-template-columns: 1fr 1fr; }
+      .wide { grid-column: span 2; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Pulsar Algo Dashboard</h1>
+    <div>WS: <span id="wsStatus" class="status">OFFLINE</span></div>
+  </header>
+  <main>
+    <section class="grid">
+      <div class="panel"><div class="label">Balance</div><div id="balance" class="value">$0.00</div></div>
+      <div class="panel"><div class="label">Daily P/L</div><div id="dailyPl" class="value">$0.00</div></div>
+      <div class="panel"><div class="label">Risk Used</div><div id="riskUsed" class="value">0.0%</div></div>
+      <div class="panel"><div class="label">Open Trades</div><div id="openTrades" class="value">0</div></div>
+      <div class="panel wide"><div class="label">Equity Curve</div><canvas id="equity"></canvas></div>
+      <div class="panel wide"><div class="label">Strategy Performance</div><canvas id="strategies"></canvas></div>
+      <div class="panel wide">
+        <div class="label">Trade Log</div>
+        <table>
+          <thead><tr><th>Time</th><th>Symbol</th><th>Side</th><th>Lot</th><th>P/L</th><th>Score</th></tr></thead>
+          <tbody id="tradeLog"></tbody>
+        </table>
+      </div>
+      <div class="panel wide">
+        <div class="label">Live State</div>
+        <pre id="state">{}</pre>
+      </div>
+    </section>
+  </main>
+  <script>
+    const state = { equity: [10000], strategies: {}, trades: [] };
+    const wsStatus = document.getElementById('wsStatus');
+
+    function drawLine(canvasId, values, color) {
+      const canvas = document.getElementById(canvasId);
+      const ctx = canvas.getContext('2d');
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * devicePixelRatio;
+      canvas.height = rect.height * devicePixelRatio;
+      ctx.scale(devicePixelRatio, devicePixelRatio);
+      ctx.clearRect(0, 0, rect.width, rect.height);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      const min = Math.min(...values);
+      const max = Math.max(...values);
+      const span = Math.max(max - min, 1);
+      ctx.beginPath();
+      values.forEach((v, i) => {
+        const x = values.length === 1 ? 0 : i / (values.length - 1) * rect.width;
+        const y = rect.height - ((v - min) / span * (rect.height - 20) + 10);
+        i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+      });
+      ctx.stroke();
+    }
+
+    function drawBars() {
+      const canvas = document.getElementById('strategies');
+      const ctx = canvas.getContext('2d');
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * devicePixelRatio;
+      canvas.height = rect.height * devicePixelRatio;
+      ctx.scale(devicePixelRatio, devicePixelRatio);
+      ctx.clearRect(0, 0, rect.width, rect.height);
+      const entries = Object.entries(state.strategies).slice(0, 10);
+      const max = Math.max(...entries.map(([, v]) => Math.abs(v)), 1);
+      entries.forEach(([name, value], i) => {
+        const w = Math.abs(value) / max * (rect.width - 160);
+        const y = i * 24 + 12;
+        ctx.fillStyle = value >= 0 ? '#33d17a' : '#ff6b6b';
+        ctx.fillRect(150, y, w, 14);
+        ctx.fillStyle = '#edf2f7';
+        ctx.font = '12px sans-serif';
+        ctx.fillText(name.slice(0, 18), 8, y + 11);
+      });
+    }
+
+    function render(payload = {}) {
+      Object.assign(state, payload);
+      document.getElementById('balance').textContent = `$${Number(state.balance || 0).toFixed(2)}`;
+      document.getElementById('dailyPl').textContent = `$${Number(state.daily_pl || 0).toFixed(2)}`;
+      document.getElementById('riskUsed').textContent = `${Number(state.risk_used || 0).toFixed(1)}%`;
+      document.getElementById('openTrades').textContent = state.open_trades || 0;
+      document.getElementById('state').textContent = JSON.stringify(state, null, 2);
+      document.getElementById('tradeLog').innerHTML = (state.trades || []).slice(-20).reverse().map(t =>
+        `<tr><td>${t.time || ''}</td><td>${t.symbol || ''}</td><td class="${t.side === 'BUY' ? 'buy' : 'sell'}">${t.side || ''}</td><td>${t.lot || ''}</td><td>${t.pl || ''}</td><td>${t.score || ''}</td></tr>`
+      ).join('');
+      drawLine('equity', state.equity || [10000], '#5ab0ff');
+      drawBars();
+    }
+
+    function connect() {
+      const url = new URL(location.href);
+      const wsUrl = url.searchParams.get('ws') || 'ws://localhost:8765';
+      try {
+        const ws = new WebSocket(wsUrl);
+        ws.onopen = () => { wsStatus.textContent = 'LIVE'; };
+        ws.onclose = () => { wsStatus.textContent = 'OFFLINE'; setTimeout(connect, 3000); };
+        ws.onerror = () => { wsStatus.textContent = 'ERROR'; };
+        ws.onmessage = (event) => render(JSON.parse(event.data));
+      } catch {
+        setTimeout(connect, 3000);
+      }
+    }
+    render();
+    connect();
+  </script>
+</body>
+</html>
